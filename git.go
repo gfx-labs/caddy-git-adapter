@@ -1,4 +1,4 @@
-package mysqladapter
+package gitadapter
 
 import (
 	"errors"

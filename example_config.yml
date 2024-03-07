@@ -1,0 +1,3 @@
+url: "https://github.com/gfx-labs/caddy-git-adapter.git"
+ref: "refs/heads/main"
+clone_path: "/tmp/caddygit/repo"
