@@ -21,7 +21,7 @@ func init() {
 
 type GitAdapterConfig struct {
 	Url       string                 `json:"url"`
-	Ref       plumbing.ReferenceName `json:"branch"`
+	Ref       plumbing.ReferenceName `json:"ref"`
 	ClonePath string                 `json:"clone_path"`
 	Caddyfile string                 `json:"caddyfile"`
 }
@@ -66,9 +66,25 @@ func (a Adapter) Adapt(body []byte, options map[string]interface{}) (
 			return nil, nil, errors.New("directory already exists and is not git repository")
 		}
 	}
+	err = r.Fetch(&git.FetchOptions{
+		Force: true,
+	})
+	if err != nil {
+		if !errors.Is(err, git.NoErrAlreadyUpToDate) {
+			return nil, nil, err
+		}
+	}
 	workTree, err := r.Worktree()
 	if err != nil {
 		return nil, nil, err
+	}
+	err = workTree.Pull(&git.PullOptions{
+		Force: true,
+	})
+	if err != nil {
+		if !errors.Is(err, git.NoErrAlreadyUpToDate) {
+			return nil, nil, err
+		}
 	}
 	err = workTree.Reset(&git.ResetOptions{
 		Mode: git.HardReset,
@@ -86,6 +102,10 @@ func (a Adapter) Adapt(body []byte, options map[string]interface{}) (
 	if err != nil {
 		return nil, nil, err
 	}
+	caddy.Log().Named("adapters.git.config").Info("resolving",
+		zap.String("ref", adapterConfig.Ref.String()),
+		zap.String("ref", commit.String()),
+	)
 	err = workTree.Checkout(&git.CheckoutOptions{
 		Hash: *commit,
 	})
