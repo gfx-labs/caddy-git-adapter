@@ -58,8 +58,6 @@ func (a Adapter) Adapt(body []byte, options map[string]interface{}) (
 	// clone the files in head into memory, with 0 depth
 	r, err := git.PlainClone(adapterConfig.ClonePath, false, &git.CloneOptions{
 		URL:           adapterConfig.Url,
-		Depth:         0,
-		SingleBranch:  true,
 		ReferenceName: adapterConfig.Ref,
 	})
 	if errors.Is(err, git.ErrRepositoryAlreadyExists) {
