@@ -72,7 +72,12 @@ func (a Adapter) Adapt(body []byte, options map[string]interface{}) (
 	if err != nil {
 		return nil, nil, err
 	}
-
+	err = workTree.Reset(&git.ResetOptions{
+		Mode: git.HardReset,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
 	err = workTree.Clean(&git.CleanOptions{
 		Dir: true,
 	})
