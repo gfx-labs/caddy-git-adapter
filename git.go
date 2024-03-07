@@ -78,14 +78,7 @@ func (a Adapter) Adapt(body []byte, options map[string]interface{}) (
 	if err != nil {
 		return nil, nil, err
 	}
-	err = workTree.Pull(&git.PullOptions{
-		Force: true,
-	})
-	if err != nil {
-		if !errors.Is(err, git.NoErrAlreadyUpToDate) {
-			return nil, nil, err
-		}
-	}
+
 	err = workTree.Reset(&git.ResetOptions{
 		Mode: git.HardReset,
 	})
@@ -98,19 +91,20 @@ func (a Adapter) Adapt(body []byte, options map[string]interface{}) (
 	if err != nil {
 		return nil, nil, err
 	}
-	commit, err := r.ResolveRevision(plumbing.Revision(adapterConfig.Ref))
-	if err != nil {
-		return nil, nil, err
-	}
-	caddy.Log().Named("adapters.git.config").Info("resolving",
-		zap.String("ref", adapterConfig.Ref.String()),
-		zap.String("ref", commit.String()),
-	)
 	err = workTree.Checkout(&git.CheckoutOptions{
-		Hash: *commit,
+		Branch: adapterConfig.Ref,
 	})
 	if err != nil {
 		return nil, nil, err
+	}
+	err = workTree.Pull(&git.PullOptions{
+		Force:         true,
+		ReferenceName: adapterConfig.Ref,
+	})
+	if err != nil {
+		if !errors.Is(err, git.NoErrAlreadyUpToDate) {
+			return nil, nil, err
+		}
 	}
 
 	config, _, err := caddycmd.LoadConfig(path.Join(adapterConfig.ClonePath, adapterConfig.Caddyfile), "caddyfile")
