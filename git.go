@@ -1,6 +1,7 @@
 package gitadapter
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -122,7 +123,14 @@ func (a Adapter) Adapt(body []byte, options map[string]interface{}) (
 		return nil, nil, err
 	}
 
-	return config, nil, err
+	mapConfig := map[string]any{}
+	err = json.Unmarshal(config, &mapConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+	sortedConfig, err := json.Marshal(mapConfig)
+
+	return sortedConfig, nil, err
 }
 
 var _ caddyconfig.Adapter = (*Adapter)(nil)
