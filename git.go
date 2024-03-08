@@ -55,13 +55,13 @@ func (a Adapter) Adapt(body []byte, options map[string]interface{}) (
 	if adapterConfig.Caddyfile == "" {
 		adapterConfig.Caddyfile = "Caddyfile"
 	}
-	os.MkdirAll(adapterConfig.ClonePath, 0o644)
 	p, err := url.Parse(adapterConfig.Url)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	repoClonePath := path.Join(adapterConfig.ClonePath, p.Host, p.Path)
+	os.MkdirAll(repoClonePath, 0o644)
 
 	caddy.Log().Named("adapters.git.config").Info("cloning to", zap.String("dir", repoClonePath))
 	r, err := git.PlainClone(repoClonePath, false, &git.CloneOptions{
