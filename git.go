@@ -42,7 +42,7 @@ func (a Adapter) Adapt(body []byte, options map[string]interface{}) (
 
 	if adapterConfig.Url == "" {
 		caddy.Log().Named("adapters.git.config").Error(fmt.Sprintf("url Not Found"))
-		panic("CaddyGitAdapter Dsn Not Found")
+		panic("CaddyGitAdapter url Not Found")
 	}
 
 	if adapterConfig.Ref == "" {
@@ -54,14 +54,17 @@ func (a Adapter) Adapt(body []byte, options map[string]interface{}) (
 	if adapterConfig.Caddyfile == "" {
 		adapterConfig.Caddyfile = "Caddyfile"
 	}
-	caddy.Log().Named("adapters.git.config").Info("cloning to", zap.String("dir", adapterConfig.ClonePath))
-	// clone the files in head into memory, with 0 depth
-	r, err := git.PlainClone(adapterConfig.ClonePath, false, &git.CloneOptions{
+	os.MkdirAll(adapterConfig.ClonePath, 0o644)
+
+	repoClonePath := path.Join(adapterConfig.ClonePath, adapterConfig.Url)
+
+	caddy.Log().Named("adapters.git.config").Info("cloning to", zap.String("dir", repoClonePath))
+	r, err := git.PlainClone(repoClonePath, false, &git.CloneOptions{
 		URL:           adapterConfig.Url,
 		ReferenceName: adapterConfig.Ref,
 	})
 	if errors.Is(err, git.ErrRepositoryAlreadyExists) {
-		r, err = git.PlainOpen(adapterConfig.ClonePath)
+		r, err = git.PlainOpen(repoClonePath)
 		if err != nil {
 			return nil, nil, errors.New("directory already exists and is not git repository")
 		}
@@ -107,7 +110,7 @@ func (a Adapter) Adapt(body []byte, options map[string]interface{}) (
 		}
 	}
 
-	config, _, err := caddycmd.LoadConfig(path.Join(adapterConfig.ClonePath, adapterConfig.Caddyfile), "caddyfile")
+	config, _, err := caddycmd.LoadConfig(path.Join(repoClonePath, adapterConfig.Caddyfile), "caddyfile")
 	if err != nil {
 		return nil, nil, err
 	}
