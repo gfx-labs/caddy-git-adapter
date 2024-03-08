@@ -3,6 +3,7 @@ package gitadapter
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path"
 
@@ -55,8 +56,12 @@ func (a Adapter) Adapt(body []byte, options map[string]interface{}) (
 		adapterConfig.Caddyfile = "Caddyfile"
 	}
 	os.MkdirAll(adapterConfig.ClonePath, 0o644)
+	p, err := url.Parse(adapterConfig.Url)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	repoClonePath := path.Join(adapterConfig.ClonePath, adapterConfig.Url)
+	repoClonePath := path.Join(adapterConfig.ClonePath, p.Host, p.Path)
 
 	caddy.Log().Named("adapters.git.config").Info("cloning to", zap.String("dir", repoClonePath))
 	r, err := git.PlainClone(repoClonePath, false, &git.CloneOptions{
