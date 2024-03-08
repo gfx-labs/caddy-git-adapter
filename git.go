@@ -61,7 +61,7 @@ func (a Adapter) Adapt(body []byte, options map[string]interface{}) (
 	}
 
 	repoClonePath := path.Join(adapterConfig.ClonePath, p.Host, p.Path)
-	os.MkdirAll(repoClonePath, 0o740)
+	os.MkdirAll(repoClonePath, 0o744)
 
 	caddy.Log().Named("adapters.git.config").Info("cloning to", zap.String("dir", repoClonePath))
 	r, err := git.PlainClone(repoClonePath, false, &git.CloneOptions{
