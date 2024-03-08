@@ -73,6 +73,8 @@ func (a Adapter) Adapt(body []byte, options map[string]interface{}) (
 		if err != nil {
 			return nil, nil, errors.New("directory already exists and is not git repository")
 		}
+	} else if err != nil {
+		return nil, nil, err
 	}
 	err = r.Fetch(&git.FetchOptions{
 		Force: true,
